@@ -1,0 +1,33 @@
+volumes:
+  cism_postgres_data:
+
+networks:
+  default:
+    name: cism
+    external: true
+
+x-app: &app
+  logging:
+    driver: "json-file"
+    options:
+      max-file: "3"
+      max-size: "10m"
+  env_file:
+    - .env
+  restart: always
+
+services:
+  fastapi:
+    <<: *app
+    hostname: fastapi_web
+    build:
+      context: ./
+      dockerfile: ./src/frameworks_and_drivers/http_web_fastapi/Dockerfile
+    expose:
+      - 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src/:/opt/src/
+    deploy:
+      replicas: 1
