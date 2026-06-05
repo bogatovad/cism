@@ -62,8 +62,10 @@ class TaskRabbitMqConsumer(TaskQueueConsumerInterface):
                 logger.error("Unexpected error: %s. Reconnecting...", exc)
             finally:
                 if self.channel:
+                    logger.info("Closing channel")
                     await self.channel.close()
                 if self.connection:
+                    logger.info("Closing connection")
                     await self.connection.close()
                 await asyncio.sleep(self.reconnect_delay)
 
