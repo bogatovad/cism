@@ -1,13 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from src.frameworks_and_drivers.http_web_fastapi.depends import (
+    task_controller_dependency,
+)
+from src.interface_adapters.controllers.task import TaskController
+
 
 app = FastAPI()
 
 
 @app.get("/")
-async def read_root():
+async def create_task(
+    task_controller: TaskController = Depends(task_controller_dependency),
+):
+    await task_controller.create_task()
     return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
