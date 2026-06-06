@@ -34,6 +34,7 @@ from src.usecases.usecases_api.task import (
 async def task_controller_dependency() -> AsyncGenerator[TaskController]:
     queue = TaskRabbitMqQueue(connection=get_rabbitmq_connection())
     status_cache = TaskStatusRedisCache(client=get_redis_client())
+
     async with get_db_async_context_manager() as session:
         task_sql_alchemy_repository = TaskSqlAlchemyRepository(session=session)
         create_task_usecase = CreateTaskUseCase(

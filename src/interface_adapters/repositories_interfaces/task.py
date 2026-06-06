@@ -18,3 +18,6 @@ class TaskStorageInterface:
 
     async def get_task_status(self, task_id: int) -> TaskStatus:
         pass
+
+    async def update_task_status(self, task_id: int, status: TaskStatus) -> TaskStatus:
+        pass

@@ -23,9 +23,11 @@ def create_process_task_controller(session: AsyncSession) -> ProcessTaskControll
     repo = TaskSqlAlchemyRepository(session=session)
     return ProcessTaskController(
         UsecaseDto(
-            process_read_shared_memory_usecase=ProcessReadSharedMemoryUseCase(repo),
-            process_cpu_tasks_usecase=ProcessCpuTasksUseCase(repo),
-            process_lll_tasks_usecase=ProcessLllTasksUseCase(repo),
+            process_read_shared_memory_usecase=ProcessReadSharedMemoryUseCase(
+                task_repository=repo
+            ),
+            process_cpu_tasks_usecase=ProcessCpuTasksUseCase(task_repository=repo),
+            process_lll_tasks_usecase=ProcessLllTasksUseCase(task_repository=repo),
         )
     )
 

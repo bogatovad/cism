@@ -75,3 +75,16 @@ class TaskSqlAlchemyRepository(TaskStorageInterface):
             raise TaskNotFoundError(f"Task {task_id} not found")
 
         return status
+
+    async def update_task_status(self, task_id: int, status: TaskStatus) -> TaskStatus:
+        result = await self.session.execute(
+            select(TaskModel).where(TaskModel.task_id == task_id)
+        )
+        db_task = result.scalar_one_or_none()
+
+        if db_task is None:
+            raise TaskNotFoundError(f"Task {task_id} not found")
+
+        db_task.status = status
+        await self.session.flush()
+        return status
