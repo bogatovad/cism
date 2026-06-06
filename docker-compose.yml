@@ -1,6 +1,8 @@
 volumes:
   cism_postgres_data:
-  cism_rabbitmq_data:
+  cism_rabbitmq_1_data:
+  cism_rabbitmq_2_data:
+  cism_rabbitmq_3_data:
 
 networks:
   default:
@@ -14,6 +16,21 @@ x-app: &app
       max-file: "3"
       max-size: "10m"
   restart: always
+
+x-rabbitmq-node: &rabbitmq-node
+  <<: *app
+  image: rabbitmq:3.13-management
+  environment: &rabbitmq-env
+    RABBITMQ_ERLANG_COOKIE: cism_cluster_cookie
+  volumes: &rabbitmq-volumes
+    - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    - ./docker/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+  healthcheck:
+    test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+    interval: 10s
+    timeout: 5s
+    retries: 10
+    start_period: 40s
 
 x-worker: &worker
   <<: *app
@@ -83,18 +100,65 @@ services:
 
   rabbitmq:
     <<: *app
+    image: haproxy:2.9-alpine
     hostname: rabbitmq
-    image: rabbitmq:3-management
     ports:
       - "5672:5672"
-      - "15672:15672"
     volumes:
-      - cism_rabbitmq_data:/var/lib/rabbitmq
+      - ./docker/haproxy/rabbitmq.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
+      rabbitmq-2:
+        condition: service_healthy
+      rabbitmq-3:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
+
+  rabbitmq-1:
+    <<: *rabbitmq-node
+    hostname: rabbitmq-1
+    environment:
+      <<: *rabbitmq-env
+      RABBITMQ_NODENAME: rabbit@rabbitmq-1
+    ports:
+      - "15672:15672"
+    volumes:
+      - cism_rabbitmq_1_data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./docker/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+
+  rabbitmq-2:
+    <<: *rabbitmq-node
+    hostname: rabbitmq-2
+    environment:
+      <<: *rabbitmq-env
+      RABBITMQ_NODENAME: rabbit@rabbitmq-2
+    volumes:
+      - cism_rabbitmq_2_data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./docker/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
+
+  rabbitmq-3:
+    <<: *rabbitmq-node
+    hostname: rabbitmq-3
+    environment:
+      <<: *rabbitmq-env
+      RABBITMQ_NODENAME: rabbit@rabbitmq-3
+    volumes:
+      - cism_rabbitmq_3_data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./docker/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
 
   db:
     <<: *app

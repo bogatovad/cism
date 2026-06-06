@@ -4,6 +4,7 @@ from aio_pika.abc import AbstractChannel, AbstractExchange, AbstractQueue
 from src.entities.task import TaskPriority
 
 EXCHANGE_NAME = "tasks.direct"
+QUORUM_QUEUE_ARGS = {"x-queue-type": "quorum"}
 
 
 def queue_for_priority(priority: TaskPriority) -> str:
@@ -17,7 +18,11 @@ async def setup_topology(channel: AbstractChannel) -> AbstractExchange:
         durable=True,
     )
     for priority in TaskPriority:
-        queue = await channel.declare_queue(queue_for_priority(priority), durable=True)
+        queue = await channel.declare_queue(
+            queue_for_priority(priority),
+            durable=True,
+            arguments=QUORUM_QUEUE_ARGS,
+        )
         await queue.bind(exchange, routing_key=priority.value)
     return exchange
 
@@ -31,7 +36,11 @@ async def setup_worker_queue(
         aio_pika.ExchangeType.DIRECT,
         durable=True,
     )
-    queue = await channel.declare_queue(queue_name, durable=True)
+    queue = await channel.declare_queue(
+        queue_name,
+        durable=True,
+        arguments=QUORUM_QUEUE_ARGS,
+    )
     routing_key = queue_name.removeprefix("tasks.").upper()
     await queue.bind(exchange, routing_key=routing_key)
     return queue
