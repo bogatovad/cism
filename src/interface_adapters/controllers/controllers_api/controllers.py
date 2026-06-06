@@ -1,5 +1,5 @@
 from src.entities.task import TaskStatus
-from src.interface_adapters.dtos.task import TaskDto
+from src.interface_adapters.dtos.task import TaskDto, TasksPageDto
 from src.interface_adapters.dtos.usecases import UsecaseDto
 
 
@@ -16,8 +16,17 @@ class TaskController:
     async def get_task(self, task_id: int) -> TaskDto:
         return await self.usecase.get_task_usecase.execute(task_id)
 
-    async def get_tasks(self) -> list[TaskDto]:
-        return await self.usecase.get_tasks_usecase.execute()
+    async def get_tasks(
+        self,
+        page: int,
+        page_size: int,
+        status: TaskStatus | None = None,
+    ) -> TasksPageDto:
+        return await self.usecase.get_tasks_usecase.execute(
+            page=page,
+            page_size=page_size,
+            status=status,
+        )
 
     async def get_status_task(self, task_id: int) -> TaskStatus:
         return await self.usecase.get_status_usecase.execute(task_id)

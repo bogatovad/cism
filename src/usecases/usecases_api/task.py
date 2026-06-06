@@ -1,6 +1,6 @@
 from src.entities.task import TaskStatus
 from src.interface_adapters.cache_interfaces.task_status import TaskStatusCacheInterface
-from src.interface_adapters.dtos.task import TaskDto
+from src.interface_adapters.dtos.task import TaskDto, TasksPageDto
 from src.interface_adapters.queue_interfaces.publisher.publisher import (
     TaskQueuePublisherInterface,
 )
@@ -33,8 +33,17 @@ class GetTasksUseCase(BaseUseCase):
     def __init__(self, task_repository: TaskStorageInterface):
         self.task_repository = task_repository
 
-    async def execute(self) -> list[TaskDto]:
-        return await self.task_repository.get_tasks()
+    async def execute(
+        self,
+        page: int,
+        page_size: int,
+        status: TaskStatus | None = None,
+    ) -> TasksPageDto:
+        return await self.task_repository.get_tasks(
+            page=page,
+            page_size=page_size,
+            status=status,
+        )
 
 
 class GetTaskUseCase(BaseUseCase):

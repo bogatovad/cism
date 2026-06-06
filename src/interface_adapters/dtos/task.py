@@ -1,7 +1,8 @@
-from pydantic import BaseModel
+from datetime import datetime
+
+from pydantic import BaseModel, Field
 
 from src.entities.task import TaskPriority, TaskStatus, TypeTask
-from datetime import datetime
 
 
 class TaskDto(BaseModel):
@@ -16,3 +17,10 @@ class TaskDto(BaseModel):
     end_date: datetime | None = None
     result: dict = {}
     info: dict = {}
+
+
+class TasksPageDto(BaseModel):
+    items: list[TaskDto]
+    total: int
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1)

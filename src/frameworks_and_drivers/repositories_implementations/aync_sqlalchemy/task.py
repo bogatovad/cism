@@ -1,5 +1,6 @@
 from datetime import datetime
-from sqlalchemy import select
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.entities.exceptions import TaskNotFoundError
@@ -7,7 +8,7 @@ from src.entities.task import TaskStatus
 from src.frameworks_and_drivers.repositories_implementations.aync_sqlalchemy.models import (
     Task as TaskModel,
 )
-from src.interface_adapters.dtos.task import TaskDto
+from src.interface_adapters.dtos.task import TaskDto, TasksPageDto
 from src.interface_adapters.repositories_interfaces.task import TaskStorageInterface
 
 
@@ -38,9 +39,33 @@ class TaskSqlAlchemyRepository(TaskStorageInterface):
         await self.session.refresh(db_task)
         return self._to_dto(db_task)
 
-    async def get_tasks(self) -> list[TaskDto]:
-        result = await self.session.execute(select(TaskModel))
-        return [self._to_dto(db_task) for db_task in result.scalars().all()]
+    async def get_tasks(
+        self,
+        page: int,
+        page_size: int,
+        status: TaskStatus | None = None,
+    ) -> TasksPageDto:
+        query = select(TaskModel)
+        count_query = select(func.count()).select_from(TaskModel)
+
+        if status is not None:
+            query = query.where(TaskModel.status == status)
+            count_query = count_query.where(TaskModel.status == status)
+
+        total = await self.session.scalar(count_query) or 0
+
+        result = await self.session.execute(
+            query.order_by(TaskModel.created_at.desc(), TaskModel.task_id.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+
+        return TasksPageDto(
+            items=[self._to_dto(db_task) for db_task in result.scalars().all()],
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
 
     async def get_task_by_id(self, task_id: int) -> TaskDto:
         result = await self.session.execute(

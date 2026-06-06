@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 
-from src.interface_adapters.dtos.task import TaskDto
+from src.interface_adapters.dtos.task import TaskDto, TasksPageDto
 from src.entities.task import TaskStatus
 
 
@@ -10,7 +10,12 @@ class TaskStorageInterface(ABC):
         pass
 
     @abstractmethod
-    async def get_tasks(self) -> list[TaskDto]:
+    async def get_tasks(
+        self,
+        page: int,
+        page_size: int,
+        status: TaskStatus | None = None,
+    ) -> TasksPageDto:
         pass
 
     @abstractmethod

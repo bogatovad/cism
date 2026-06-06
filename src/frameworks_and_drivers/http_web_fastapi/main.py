@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Query
 
 from src.entities.exceptions import TaskNotFoundError
 from src.entities.task import TaskStatus
@@ -21,7 +21,7 @@ from src.frameworks_and_drivers.queue_implementations.connection import (
 from src.interface_adapters.controllers.controllers_api.controllers import (
     TaskController,
 )
-from src.interface_adapters.dtos.task import TaskDto
+from src.interface_adapters.dtos.task import TaskDto, TasksPageDto
 
 
 @asynccontextmanager
@@ -45,11 +45,18 @@ async def get_task(
     return await task_controller.get_task(task_id)
 
 
-@app.get("/tasks", response_model=list[TaskDto])
+@app.get("/tasks", response_model=TasksPageDto)
 async def get_tasks(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    status: TaskStatus | None = None,
     task_controller: TaskController = Depends(task_controller_dependency),
-) -> list[TaskDto]:
-    return await task_controller.get_tasks()
+) -> TasksPageDto:
+    return await task_controller.get_tasks(
+        page=page,
+        page_size=page_size,
+        status=status,
+    )
 
 
 @app.get("/tasks/{task_id}/status", response_model=TaskStatus)
