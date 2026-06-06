@@ -42,7 +42,7 @@ x-worker: &worker
   env_file:
     - environments/db.env
     - environments/rabbitmq.env
-    - environments/web.env
+    - environments/model.env
   depends_on:
     pgbouncer:
       condition: service_started
