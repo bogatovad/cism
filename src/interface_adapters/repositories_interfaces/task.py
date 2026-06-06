@@ -19,5 +19,11 @@ class TaskStorageInterface:
     async def get_task_status(self, task_id: int) -> TaskStatus:
         pass
 
-    async def update_task_status(self, task_id: int, status: TaskStatus) -> TaskStatus:
+    async def update_task_start(self, task_id: int) -> TaskStatus:
+        pass
+
+    async def update_task_end(self, task_id: int, result_task: dict) -> TaskStatus:
+        pass
+
+    async def commit(self) -> bool:
         pass

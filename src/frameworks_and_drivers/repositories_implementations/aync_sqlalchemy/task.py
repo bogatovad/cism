@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -76,7 +77,7 @@ class TaskSqlAlchemyRepository(TaskStorageInterface):
 
         return status
 
-    async def update_task_status(self, task_id: int, status: TaskStatus) -> TaskStatus:
+    async def update_task_start(self, task_id: int) -> TaskStatus:
         result = await self.session.execute(
             select(TaskModel).where(TaskModel.task_id == task_id)
         )
@@ -85,6 +86,26 @@ class TaskSqlAlchemyRepository(TaskStorageInterface):
         if db_task is None:
             raise TaskNotFoundError(f"Task {task_id} not found")
 
-        db_task.status = status
+        db_task.status = TaskStatus.IN_PROGRESS
+        db_task.start_date = datetime.utcnow()
         await self.session.flush()
-        return status
+        return TaskStatus.IN_PROGRESS
+
+    async def update_task_end(self, task_id: int, result_task: dict) -> TaskStatus:
+        result = await self.session.execute(
+            select(TaskModel).where(TaskModel.task_id == task_id)
+        )
+        db_task = result.scalar_one_or_none()
+
+        if db_task is None:
+            raise TaskNotFoundError(f"Task {task_id} not found")
+
+        db_task.status = TaskStatus.COMPLETED
+        db_task.end_date = datetime.utcnow()
+        db_task.result = result_task
+        await self.session.flush()
+        return TaskStatus.COMPLETED
+
+    async def commit(self) -> bool:
+        await self.session.commit()
+        return True
