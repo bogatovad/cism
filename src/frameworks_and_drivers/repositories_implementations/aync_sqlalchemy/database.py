@@ -9,7 +9,13 @@ from src.frameworks_and_drivers.repositories_implementations.aync_sqlalchemy.set
     database_settings,
 )
 
-engine = create_async_engine(database_settings.url, echo=database_settings.echo)
+engine = create_async_engine(
+    database_settings.url,
+    echo=database_settings.echo,
+    pool_size=database_settings.pool_size,
+    max_overflow=database_settings.max_overflow,
+    connect_args={"statement_cache_size": 0},
+)
 
 async_database_session = sessionmaker(
     engine, autoflush=True, expire_on_commit=False, autobegin=True, class_=AsyncSession

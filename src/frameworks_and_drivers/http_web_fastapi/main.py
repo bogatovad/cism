@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI
 
 from src.entities.exceptions import TaskNotFoundError
@@ -8,13 +10,24 @@ from src.frameworks_and_drivers.http_web_fastapi.depends import (
 from src.frameworks_and_drivers.http_web_fastapi.exception_handlers import (
     task_not_found_handler,
 )
+from src.frameworks_and_drivers.queue_implementations.connection import (
+    close_rabbitmq_connection,
+    init_rabbitmq_connection,
+)
 from src.interface_adapters.controllers.controllers_api.controllers import (
     TaskController,
 )
 from src.interface_adapters.dtos.task import TaskDto
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_rabbitmq_connection()
+    yield
+    await close_rabbitmq_connection()
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_exception_handler(TaskNotFoundError, task_not_found_handler)
 
 

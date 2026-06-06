@@ -21,4 +21,4 @@ RUN mkdir -p static && chown 33:33 static
 EXPOSE 8000
 
 # Запуск FastAPI с Uvicorn
-CMD ["uv", "run", "uvicorn", "src.frameworks_and_drivers.http_web_fastapi.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "src.frameworks_and_drivers.http_web_fastapi.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

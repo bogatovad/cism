@@ -26,12 +26,9 @@ from src.usecases.usecases_api.task import (
 
 
 async def task_controller_dependency() -> AsyncGenerator[TaskController]:
-    rabbitmq_connection = await get_rabbitmq_connection()
-
-    # todo: тут нужно вызвать rabbitmq_connection.close(). подумать где именно.
+    queue = TaskRabbitMqQueue(connection=get_rabbitmq_connection())
     async with get_db_async_context_manager() as session:
         task_sql_alchemy_repository = TaskSqlAlchemyRepository(session=session)
-        queue = TaskRabbitMqQueue(connection=rabbitmq_connection)
 
         create_task_usecase = CreateTaskUseCase(
             task_repository=task_sql_alchemy_repository,
