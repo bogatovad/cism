@@ -1,6 +1,7 @@
-class LlmGatewayInterface:
-    def __init__(self, client):
-        self.client = client
+from abc import ABC, abstractmethod
 
-    async def send(self):
+
+class LlmGatewayInterface(ABC):
+    @abstractmethod
+    async def send(self, prompt: str) -> str:
         pass

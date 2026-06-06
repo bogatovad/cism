@@ -1,3 +1,4 @@
+from abc import abstractmethod, ABC
 from collections.abc import AsyncGenerator, Callable
 
 from src.interface_adapters.controllers.controllers_logic.controllers import (
@@ -5,7 +6,7 @@ from src.interface_adapters.controllers.controllers_logic.controllers import (
 )
 
 
-class TaskQueueConsumerInterface:
+class TaskQueueConsumerInterface(ABC):
     def __init__(
         self,
         url: str,
@@ -16,5 +17,6 @@ class TaskQueueConsumerInterface:
         self.queue_name = queue_name
         self.get_controller = get_controller
 
+    @abstractmethod
     def run(self):
         pass

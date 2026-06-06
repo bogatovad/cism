@@ -91,7 +91,9 @@ class TaskSqlAlchemyRepository(TaskStorageInterface):
         await self.session.flush()
         return TaskStatus.IN_PROGRESS
 
-    async def update_task_end(self, task_id: int, result_task: dict) -> TaskStatus:
+    async def update_task_end(
+        self, task_id: int, result_task: dict, error_info: dict
+    ) -> TaskStatus:
         result = await self.session.execute(
             select(TaskModel).where(TaskModel.task_id == task_id)
         )
@@ -103,6 +105,7 @@ class TaskSqlAlchemyRepository(TaskStorageInterface):
         db_task.status = TaskStatus.COMPLETED
         db_task.end_date = datetime.utcnow()
         db_task.result = result_task
+        db_task.info = error_info
         await self.session.flush()
         return TaskStatus.COMPLETED
 
