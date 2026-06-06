@@ -69,8 +69,11 @@ services:
     env_file:
       - environments/db.env
       - environments/rabbitmq.env
+      - environments/redis.env
     depends_on:
       pgbouncer:
+        condition: service_started
+      redis:
         condition: service_started
       rabbitmq:
         condition: service_healthy
@@ -97,6 +100,18 @@ services:
       RABBITMQ_QUEUE_NAME: tasks.low
     deploy:
       replicas: 1
+
+  redis:
+    <<: *app
+    image: redis:7-alpine
+    hostname: redis
+    expose:
+      - 6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pgbouncer:
     <<: *app

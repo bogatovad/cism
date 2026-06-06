@@ -1,5 +1,11 @@
 from collections.abc import AsyncGenerator
 
+from src.frameworks_and_drivers.cache_implementations.redis.connection import (
+    get_redis_client,
+)
+from src.frameworks_and_drivers.cache_implementations.redis.task_status import (
+    TaskStatusRedisCache,
+)
 from src.frameworks_and_drivers.queue_implementations.connection import (
     get_rabbitmq_connection,
 )
@@ -27,20 +33,23 @@ from src.usecases.usecases_api.task import (
 
 async def task_controller_dependency() -> AsyncGenerator[TaskController]:
     queue = TaskRabbitMqQueue(connection=get_rabbitmq_connection())
+    status_cache = TaskStatusRedisCache(client=get_redis_client())
     async with get_db_async_context_manager() as session:
         task_sql_alchemy_repository = TaskSqlAlchemyRepository(session=session)
-
         create_task_usecase = CreateTaskUseCase(
             task_repository=task_sql_alchemy_repository,
             queue=queue,
+            status_cache=status_cache,
         )
         get_task_usecase = GetTaskUseCase(task_repository=task_sql_alchemy_repository)
         get_status_task_usecase = GetStatusTaskUseCase(
-            task_repository=task_sql_alchemy_repository
+            task_repository=task_sql_alchemy_repository,
+            status_cache=status_cache,
         )
         get_tasks_usecase = GetTasksUseCase(task_repository=task_sql_alchemy_repository)
         delete_task_usecase = DeleteTaskUseCase(
-            task_repository=task_sql_alchemy_repository
+            task_repository=task_sql_alchemy_repository,
+            status_cache=status_cache,
         )
         usecase_dto = UsecaseDto(
             create_task_usecase=create_task_usecase,

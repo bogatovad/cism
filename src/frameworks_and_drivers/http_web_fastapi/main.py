@@ -10,6 +10,10 @@ from src.frameworks_and_drivers.http_web_fastapi.depends import (
 from src.frameworks_and_drivers.http_web_fastapi.exception_handlers import (
     task_not_found_handler,
 )
+from src.frameworks_and_drivers.cache_implementations.redis.connection import (
+    close_redis_connection,
+    init_redis_connection,
+)
 from src.frameworks_and_drivers.queue_implementations.connection import (
     close_rabbitmq_connection,
     init_rabbitmq_connection,
@@ -23,7 +27,9 @@ from src.interface_adapters.dtos.task import TaskDto
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_rabbitmq_connection()
+    await init_redis_connection()
     yield
+    await close_redis_connection()
     await close_rabbitmq_connection()
 
 
