@@ -1,4 +1,4 @@
-# cism
+# Task Manipulator
 
 Сервис асинхронных задач: FastAPI, PostgreSQL, RabbitMQ, Redis, воркеры с приоритетными очередями.
 
