@@ -31,6 +31,9 @@ dev = [
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "postgres: integration tests that require a running PostgreSQL instance",
+]
 
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]

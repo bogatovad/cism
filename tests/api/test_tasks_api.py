@@ -6,7 +6,7 @@ from tests.fakes.repository import sample_task_dto
 
 
 @pytest.mark.asyncio
-async def test_create_task(api_client: AsyncClient, queue) -> None:
+async def test_create_task_and_push_to_queue(api_client: AsyncClient, queue) -> None:
     payload = sample_task_dto().model_dump(mode="json")
 
     response = await api_client.post("/tasks", json=payload)
@@ -16,6 +16,7 @@ async def test_create_task(api_client: AsyncClient, queue) -> None:
     assert body["task_id"] == 1
     assert body["name"] == "test-task"
     assert body["status"] == TaskStatus.NEW
+    assert body["description"] == payload["description"]
     assert len(queue.published) == 1
     assert queue.published[0].task_id == 1
 
@@ -33,10 +34,10 @@ async def test_get_task(api_client: AsyncClient, task_controller) -> None:
 
 @pytest.mark.asyncio
 async def test_get_task_not_found(api_client: AsyncClient) -> None:
-    response = await api_client.get("/tasks/999")
+    response = await api_client.get("/tasks/2")
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Task 999 not found"
+    assert response.json()["detail"] == "Task 2 not found"
 
 
 @pytest.mark.asyncio
@@ -110,10 +111,10 @@ async def test_delete_task(api_client: AsyncClient, task_controller, cache) -> N
 
 @pytest.mark.asyncio
 async def test_delete_task_not_found(api_client: AsyncClient) -> None:
-    response = await api_client.delete("/tasks/999")
+    response = await api_client.delete("/tasks/2")
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Task 999 not found"
+    assert response.json()["detail"] == "Task 2 not found"
 
 
 @pytest.mark.asyncio
