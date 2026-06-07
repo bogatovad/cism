@@ -1,0 +1,36 @@
+@startuml task-manager-components
+title Task Manager — Component Diagram
+
+actor Client
+
+rectangle "API" {
+  component nginx
+  component "FastAPI" as api
+}
+
+rectangle "Workers" {
+  component "Consumer\n(high / medium / low)" as worker
+}
+
+database PostgreSQL as db
+component PgBouncer as pool
+component Redis as redis
+queue "RabbitMQ\n(cluster)" as mq
+cloud OpenRouter as llm
+
+Client --> nginx : HTTP
+nginx --> api
+
+api --> pool
+worker --> pool
+pool --> db
+
+api --> redis : status cache
+worker --> redis
+
+api --> mq : publish
+worker --> mq : consume
+
+worker --> llm : LLM tasks
+
+@enduml
