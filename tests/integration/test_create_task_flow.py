@@ -8,7 +8,7 @@ from tests.fakes.repository import sample_task_dto
 
 
 @pytest.mark.asyncio
-async def test_create_task_end_to_end_with_sqlalchemy(
+async def test_create_task_flow(
     task_repository,
 ) -> None:
     queue = FakeTaskQueuePublisher()
